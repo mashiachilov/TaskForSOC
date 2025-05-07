@@ -5,11 +5,17 @@ function Decrypt-String {
         [string]$CipherTextBase64,
         [string]$Password
     )
-    # derive 256-bit key = UTF8(password padded to 32 bytes)
-    $keyBytes = [System.Text.Encoding]::UTF8.GetBytes( ($Password.PadRight(32)) [0..31] -join '' )
+
+    # Pad or truncate the password to exactly 32 chars
+    $padded = ($Password.PadRight(32)).Substring(0,32)
+
+    # UTF8 bytes of that 32-char string → 256-bit key
+    $keyBytes = [System.Text.Encoding]::UTF8.GetBytes($padded)
+
     # zero IV
     $iv = New-Object byte[] 16
 
+    # decrypt
     $cipherBytes = [Convert]::FromBase64String($CipherTextBase64)
     $aes = [System.Security.Cryptography.Aes]::Create()
     $aes.Mode    = 'CBC'
@@ -18,10 +24,12 @@ function Decrypt-String {
     $aes.IV      = $iv
 
     $decryptor = $aes.CreateDecryptor()
-    $ms = New-Object System.IO.MemoryStream(,$cipherBytes)
-    $cs = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Read)
-    $sr = New-Object System.IO.StreamReader($cs)
+    $ms        = New-Object System.IO.MemoryStream(,$cipherBytes)
+    $cs        = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Read)
+    $sr        = New-Object System.IO.StreamReader($cs)
+
     $plain = $sr.ReadToEnd()
+
     $sr.Close(); $cs.Close(); $ms.Close()
     return $plain
 }
